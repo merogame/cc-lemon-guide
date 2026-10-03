@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ja">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="description" content="CCレモンゲームの均衡手ガイド">
+<meta name="theme-color" content="#101113">
+<title>CCレモンガイド</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23101113'/%3E%3Cpath d='M19 5 9 18h7l-3 9 11-14h-7z' fill='%23f8e24b'/%3E%3C/svg%3E">
+<style>
+:root{color-scheme:dark;font-family:system-ui,-apple-system,"Yu Gothic",sans-serif;background:#101113;color:#f5f5f5;touch-action:none;font-synthesis:none}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;overscroll-behavior:none}
+body{position:fixed;inset:0;user-select:none;-webkit-user-select:none}
+main{height:100%;height:100dvh;width:min(100%,28rem);margin:auto;padding: max(1rem,env(safe-area-inset-top)) max(1.25rem,env(safe-area-inset-right)) max(1rem,env(safe-area-inset-bottom)) max(1.25rem,env(safe-area-inset-left));display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:1rem}
+.energy{display:grid;grid-template-columns:1fr 1fr;text-align:center;gap:1.5rem;padding-top:clamp(0rem,3vh,1.5rem)}
+.energy span{display:block;color:#9d9fa3;font-size:1rem;line-height:1.5}
+.energy output{display:block;font-size:clamp(2rem,10vh,4.5rem);font-weight:650;line-height:1.2;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+#move{align-self:center;display:flex;align-items:center;justify-content:center;min-height:5rem;color:#f8e24b;font-size:clamp(2.5rem,10vh,4.5rem);font-weight:700;line-height:1.3;outline-offset:.4rem}
+#move[role=button]{cursor:pointer}
+.hands{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+button{height:clamp(3.25rem,12vh,5.5rem);border:1px solid #3c3e43;border-radius:.6rem;background:#222429;color:inherit;font:600 1.25rem/1 system-ui,-apple-system,"Yu Gothic",sans-serif;touch-action:none;cursor:pointer}
+button:active:not(:disabled){background:#3b3d43}
+button:disabled{color:#62656b;background:#191a1d;border-color:#25272b;cursor:default}
+button:focus-visible,#move:focus-visible{outline:2px solid #f8e24b}
+@media(max-height:400px){main{gap:.5rem;padding-top:.5rem;padding-bottom:.5rem;grid-template-rows:auto minmax(0,1fr) auto}.energy{padding-top:0}.energy span{font-size:.875rem}.energy output{font-size:1.75rem}#move{min-height:2rem;font-size:2rem}.hands{grid-template-columns:repeat(4,1fr);gap:.5rem}button{height:2.75rem;font-size:1rem}}
+</style>
+<main aria-label="CCレモンガイド">
+  <div class="energy">
+    <div><span>相手</span><output id="opponent" aria-label="相手の気力">0</output></div>
+    <div><span>自分</span><output id="self" aria-label="自分の気力">0</output></div>
+  </div>
+  <output id="move" aria-label="自分が出す手" aria-live="polite">溜め</output>
+  <div class="hands" role="group" aria-label="相手が出した手">
+    <button type="button" data-hand="0">溜め</button>
+    <button type="button" data-hand="1">防御</button>
+    <button type="button" data-hand="2" disabled>攻撃</button>
+    <button type="button" data-hand="3" disabled>必殺</button>
+  </div>
+</main>
+<script>
+(()=>{
+'use strict';
+// Precomputed minimax probabilities: [charge, guard]. Attack is the remainder.
+// Affordable special weakly dominates; common multiples of 5 reduce exactly.
+const policy=[
+[1,0],[.4738634,.5261366],[.3946366,.6053634],[.4905122,.5094878],[1,0],
+[.695328,0],[.2759529,.5823469],[.1926347,.7003907],[.196343,.6896618],[.289968,.5446194],
+[.5706348,0],[.2367345,.5701263],[.1671974,.687133],[.173139,.6671684],[.2649111,.4753165],
+[.4905122,0],[.196309,.5788877],[.1357443,.6923577],[.1406378,.6633973],[.2207093,.4269887],
+[1,0],[.1479442,.6367596],[.0894776,.7373574],[.0872588,.704604],[.1286907,.4356547]
+],names=['溜め','防御','攻撃','必殺'],cost=[0,0,1,5];
+const own=document.getElementById('self'),opp=document.getElementById('opponent'),move=document.getElementById('move'),buttons=[...document.querySelectorAll('[data-hand]')];
+let a=0,b=0,chosen=0,finished=false;
+function choose(a,b){
+  if(a>=5)return 3;
+  if(b>=5||(a===0&&b===4))return 0;
+  const p=policy[a*5+b],r=Math.random();
+  return r<p[0]?0:r<p[0]+p[1]?1:2;
+}
+function draw(){
+  own.textContent=a;opp.textContent=b;
+  for(let i=0;i<4;i++)buttons[i].disabled=finished||b<cost[i];
+  if(!finished){chosen=choose(a,b);move.textContent=names[chosen];move.setAttribute('aria-label','自分が出す手：'+names[chosen]);move.removeAttribute('role');move.removeAttribute('tabindex');}
+}
+function play(other){
+  if(finished||b<cost[other])return;
+  const mine=chosen;
+  const result=mine===3&&other!==3?1:other===3&&mine!==3?-1:mine===2&&other===0?1:other===2&&mine===0?-1:0;
+  a+=mine===0?1:-cost[mine];b+=other===0?1:-cost[other];
+  if(result){finished=true;move.textContent=result>0?'勝ち':'負け';move.setAttribute('role','button');move.setAttribute('tabindex','0');move.setAttribute('aria-label',move.textContent+'。次の対戦');}
+  draw();
+}
+function restart(){if(!finished)return;a=b=0;finished=false;draw();}
+buttons.forEach((button,i)=>button.addEventListener('click',()=>play(i)));
+move.addEventListener('click',restart);
+move.addEventListener('keydown',event=>{if(finished&&(event.key==='Enter'||event.key===' ')){event.preventDefault();restart();}});
+const context=document.modelContext;
+if(context?.registerTool){
+  const lifecycle=new AbortController();
+  addEventListener('pagehide',()=>lifecycle.abort(),{once:true});
+  try{Promise.resolve(context.registerTool({
+    name:'record_opponent_hand',description:'相手の手を入力し、気力と次の均衡手を更新する。',
+    inputSchema:{type:'object',properties:{hand:{type:'string',enum:names}},required:['hand'],additionalProperties:false},
+    annotations:{readOnlyHint:false,untrustedContentHint:false},
+    execute(input){const i=names.indexOf(input?.hand);if(i<0||Object.keys(input).length!==1||finished||b<cost[i])throw Error('入力不可');play(i);return {self:a,opponent:b,hand:move.textContent,finished};}
+  },{signal:lifecycle.signal})).catch(()=>{});}catch{}
+}
+// Keep the game in one viewport; disable gesture, wheel and shortcut zoom.
+document.addEventListener('wheel',event=>event.preventDefault(),{passive:false});
+document.addEventListener('touchmove',event=>event.preventDefault(),{passive:false});
+for(const name of ['gesturestart','gesturechange','gestureend','dblclick'])document.addEventListener(name,event=>event.preventDefault(),{passive:false});
+document.addEventListener('keydown',event=>{if((event.ctrlKey||event.metaKey)&&['+','=','-','_','0','Add','Subtract'].includes(event.key))event.preventDefault();});
+draw();
+})();
+</script>
+</html>
