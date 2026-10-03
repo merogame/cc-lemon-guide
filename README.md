@@ -4,7 +4,7 @@ CCレモンゲームの気力を記録し、事前計算した均衡戦略から
 
 [ガイドを開く](https://merogame.github.io/cc-lemon-guide/)
 
-じゃんけんも利用できます：[じゃんけんガイド](https://merogame.github.io/cc-lemon-guide/janken/) · [使い方と抽選の説明](janken/README.md)
+じゃんけんは別のリポジトリで公開しています：[じゃんけんガイド](https://merogame.github.io/janken-guide/) · [使い方と抽選の説明](https://github.com/merogame/janken-guide/blob/main/README.md)
 
 画面に表示するのは相手と自分の気力、自分の手、相手の手を入力する4ボタンだけです。一画面で使える、約7KBの単体HTMLです。
 
@@ -63,8 +63,6 @@ CCレモンゲームの気力を記録し、事前計算した均衡戦略から
 | `index.html` | GitHub Pagesの入口 |
 | `CCレモンガイド.html` | 保存して使う単体HTML。`index.html` と同一内容 |
 | `.nojekyll` | GitHub Pagesで静的ファイルをそのまま配信する設定 |
-| `janken/index.html` | じゃんけんガイド。各手を1/3で抽選 |
-| `janken/README.md` | じゃんけんガイドの使い方と抽選の説明 |
 | `tools/solve-equilibrium.mjs` | 均衡表の事前計算 |
 | `tools/verify-accuracy.mjs` | 保存表に対する最適な対処の計算と精度検証 |
 | `tools/equilibrium.json` | 計算した均衡と確率 |
