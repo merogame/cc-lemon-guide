@@ -80,9 +80,3 @@ node tools/verify-accuracy.mjs
 ```
 
 前者は `tools/equilibrium.json`、後者は `tools/accuracy.json` を更新します。HTMLの確率表は自動更新されません。表や動作を変更するときは、2つのHTMLを同じ内容に更新してください。
-
-## GitHub Pagesで公開
-
-リポジトリの **Settings → Pages** で、Sourceを **Deploy from a branch**、Branchを **main**、フォルダーを **/(root)** にして保存します。
-
-公開手順の詳細は [GitHub公式ドキュメント](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site) を参照してください。
